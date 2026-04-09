@@ -1,0 +1,12 @@
+# Railway — AICal monorepo
+# Dois serviços configurados no dashboard do Railway (ver README de deploy)
+#
+# SERVIÇO: api
+#   Root directory : / (raiz do repositório)
+#   Build command  : npm ci && npm run build -w packages/backend
+#   Start command  : cd packages/backend && npx prisma migrate deploy && node dist/server.js
+#
+# SERVIÇO: frontend  (Static Site)
+#   Root directory : / (raiz do repositório)
+#   Build command  : npm ci && npm run build -w packages/frontend
+#   Output dir     : packages/frontend/dist

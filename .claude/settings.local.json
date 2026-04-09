@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsc:*)",
+      "Bash(ls c:/Users/Douglas/Desktop/PROJETOS/AICal/packages/backend/.env*)"
+    ]
+  }
+}

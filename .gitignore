@@ -1,0 +1,28 @@
+node_modules/
+dist/
+build/
+
+# Env files — all levels
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+**/.env.*.local
+
+*.log
+.DS_Store
+Thumbs.db
+
+# Prisma
+packages/backend/prisma/migrations/*.sql.bak
+
+# Railway
+.railway/
+
+# IDE
+.vscode/settings.json
+.idea/
+
+# Test coverage
+coverage/

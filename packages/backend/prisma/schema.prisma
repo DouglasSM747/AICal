@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Nutritional sources ──────────────────────────────────────────────────────
+
+model FonteNutricional {
+  id        Int      @id @default(autoincrement())
+  codigo    String   @unique @db.VarChar(20)
+  nome      String   @db.VarChar(100)
+  descricao String?  @db.Text
+  prioridade Int     @default(1)
+  ativa     Boolean  @default(true)
+  criado_em DateTime @default(now()) @db.Timestamptz
+
+  alimentos AlimentoPadronizado[]
+
+  @@map("fontes_nutricionais")
+}
+
+// ─── Standardized food items (TACO + AI fallback cache) ─────────────────────
+
+model AlimentoPadronizado {
+  id                  Int      @id @default(autoincrement())
+  fonte_id            Int
+  codigo_externo      String?  @db.VarChar(50)
+  nome_canonico       String   @db.VarChar(200)
+  nome_busca          String   @db.Text
+  categoria           String?  @db.VarChar(100)
+  porcao_referencia_g Decimal  @default(100) @db.Decimal(8, 2)
+
+  // Per 100g nutritional values
+  energia_kcal        Decimal? @db.Decimal(8, 2)
+  proteina_g          Decimal? @db.Decimal(8, 2)
+  carboidrato_g       Decimal? @db.Decimal(8, 2)
+  lipideo_g           Decimal? @db.Decimal(8, 2)
+  fibra_g             Decimal? @db.Decimal(8, 2)
+  sodio_mg            Decimal? @db.Decimal(8, 2)
+
+  // Metadata
+  confianca_ia        Decimal? @db.Decimal(4, 3)
+  verificado          Boolean  @default(false)
+  criado_em           DateTime @default(now()) @db.Timestamptz
+  atualizado_em       DateTime @updatedAt @db.Timestamptz
+
+  fonte FonteNutricional @relation(fields: [fonte_id], references: [id])
+  itens ItensRefeicao[]
+
+  @@unique([codigo_externo, fonte_id])
+  @@index([fonte_id])
+  @@map("alimentos_padronizados")
+}
+
+// ─── Users (populated by external system) ────────────────────────────────────
+
+model Usuario {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username     String   @unique @db.VarChar(50)
+  senha_hash   String   @db.VarChar(255)
+  nome_display String?  @db.VarChar(100)
+  ativo        Boolean  @default(true)
+  criado_em    DateTime @default(now()) @db.Timestamptz
+  atualizado_em DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  refeicoes  Refeicao[]
+  logs_ia    LogProcessamentoIA[]
+
+  @@map("usuarios")
+}
+
+// ─── Meals ───────────────────────────────────────────────────────────────────
+
+enum TipoRefeicao {
+  cafe_da_manha
+  almoco
+  lanche
+  janta
+  ceia
+}
+
+enum OrigemEntrada {
+  texto
+  audio
+}
+
+enum StatusRefeicao {
+  rascunho
+  processando
+  aguardando_revisao
+  confirmada
+  deletada
+}
+
+model Refeicao {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  usuario_id     String         @db.Uuid
+  tipo           TipoRefeicao
+  status         StatusRefeicao @default(rascunho)
+  origem_entrada OrigemEntrada
+
+  data_refeicao    DateTime @db.Date
+  horario_refeicao String?  @db.VarChar(5) // "HH:MM"
+
+  texto_original   String? @db.Text
+  texto_editado    String? @db.Text
+  texto_confirmado String  @db.Text
+
+  resposta_ia_raw Json?
+
+  // Denormalized totals for fast queries
+  total_energia_kcal  Decimal? @db.Decimal(8, 2)
+  total_proteina_g    Decimal? @db.Decimal(8, 2)
+  total_carboidrato_g Decimal? @db.Decimal(8, 2)
+  total_lipideo_g     Decimal? @db.Decimal(8, 2)
+
+  confianca_media_ia Decimal? @db.Decimal(4, 3)
+
+  criado_em    DateTime  @default(now()) @db.Timestamptz
+  atualizado_em DateTime @updatedAt @db.Timestamptz
+  deletado_em  DateTime? @db.Timestamptz
+
+  usuario Usuario        @relation(fields: [usuario_id], references: [id])
+  itens   ItensRefeicao[]
+  logs    LogProcessamentoIA[]
+
+  @@index([usuario_id, data_refeicao])
+  @@map("refeicoes")
+}
+
+// ─── Meal items ───────────────────────────────────────────────────────────────
+
+model ItensRefeicao {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  refeicao_id String  @db.Uuid
+  alimento_id Int?
+
+  descricao_padronizada String  @db.VarChar(300)
+  quantidade_g          Decimal @db.Decimal(8, 2)
+
+  // Nutritional values copied at save time (not live-linked)
+  energia_kcal          Decimal  @db.Decimal(8, 2)
+  proteina_g            Decimal  @db.Decimal(8, 2)
+  carboidrato_g         Decimal  @db.Decimal(8, 2)
+  lipideo_g             Decimal  @db.Decimal(8, 2)
+  fibra_g               Decimal? @db.Decimal(8, 2)
+
+  confianca_ia      Decimal @db.Decimal(4, 3)
+  fonte_nutricional String  @db.VarChar(20)
+  ordem             Int     @default(0)
+
+  criado_em DateTime @default(now()) @db.Timestamptz
+
+  refeicao  Refeicao             @relation(fields: [refeicao_id], references: [id], onDelete: Cascade)
+  alimento  AlimentoPadronizado? @relation(fields: [alimento_id], references: [id])
+
+  @@index([refeicao_id])
+  @@map("itens_refeicao")
+}
+
+// ─── AI processing log ────────────────────────────────────────────────────────
+
+model LogProcessamentoIA {
+  id            BigInt   @id @default(autoincrement())
+  refeicao_id   String?  @db.Uuid
+  usuario_id    String   @db.Uuid
+  tipo_operacao String   @db.VarChar(30)
+  modelo_usado  String   @db.VarChar(50)
+  tokens_entrada Int?
+  tokens_saida   Int?
+  duracao_ms     Int?
+  status         String   @db.VarChar(20)
+  erro_mensagem  String?  @db.Text
+  payload_entrada Json?
+  payload_saida   Json?
+  criado_em      DateTime @default(now()) @db.Timestamptz
+
+  refeicao Refeicao? @relation(fields: [refeicao_id], references: [id])
+  usuario  Usuario   @relation(fields: [usuario_id], references: [id])
+
+  @@index([refeicao_id])
+  @@index([usuario_id])
+  @@map("log_processamento_ia")
+}

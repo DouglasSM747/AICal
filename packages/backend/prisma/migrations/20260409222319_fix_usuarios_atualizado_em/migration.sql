@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "usuarios" ALTER COLUMN "atualizado_em" SET DEFAULT CURRENT_TIMESTAMP;
