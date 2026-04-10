@@ -104,7 +104,34 @@ export const parserService = {
       }
     }
 
-    const itens_incertos_final = [...itens_incertos, ...itens_movidos]
+    // Try OFF rescue for uncertain items before finalizing
+    const incertos_resgatados: ItemParsed[] = []
+    const incertos_restantes: ItemIncerto[] = []
+
+    for (const incerto of [...itens_incertos, ...itens_movidos]) {
+      const off = await buscarNoOFF(incerto.texto_original)
+      if (off) {
+        incertos_resgatados.push({
+          descricao_padronizada: off.nome || incerto.texto_original.toUpperCase(),
+          medida_original:       '100 g',
+          quantidade_g:          100,
+          energia_kcal:          off.energia_kcal_100g,
+          proteina_g:            off.proteina_g_100g,
+          carboidrato_g:         off.carboidrato_g_100g,
+          lipideo_g:             off.lipideo_g_100g,
+          fibra_g:               off.fibra_g_100g,
+          confianca:             0.78,
+          fonte:                 'OPEN_FOOD_FACTS',
+          alimento_referencia:   off.nome,
+          nota:                  'Quantidade estimada em 100g — ajuste se necessário',
+        })
+      } else {
+        incertos_restantes.push(incerto)
+      }
+    }
+
+    itens_validos.push(...incertos_resgatados)
+    const itens_incertos_final = incertos_restantes
 
     // Enrich AI_FALLBACK items with Open Food Facts data when available
     for (const item of itens_validos) {

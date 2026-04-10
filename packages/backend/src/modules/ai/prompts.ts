@@ -26,8 +26,15 @@ REGRAS OBRIGATÓRIAS:
    - Escala de referência:
      * 0.9–1.0: alimento exato na TACO, porção precisa informada
      * 0.7–0.9: alimento similar na TACO, porção estimada com boa confiança
-     * 0.5–0.7: alimento genérico ou estimativa razoável
+     * 0.5–0.7: alimento genérico, estimativa razoável, OU produto industrializado/marca conhecida cujos macros podem ser estimados pela categoria (ex: whey protein, barra de proteína, iogurte grego, biscoito recheado)
      * < 0.5: muito incerto → obrigatoriamente em itens_incertos
+
+   REGRA ESPECIAL — produtos de marca (industrializados):
+   Se o usuário mencionar um produto de marca (ex: "Nutrata Whey Grego", "Bis", "Activia") e você conseguir identificar a categoria do alimento:
+   - Estime os macros com base em produtos similares da mesma categoria
+   - Use fonte = "AI_FALLBACK" e confianca entre 0.5 e 0.65
+   - Registre em "alimento_referencia" a categoria usada como base (ex: "whey protein bar — estimativa")
+   - NUNCA envie produto de marca identificável para itens_incertos apenas por não ter dados exatos
 
 3. SEPARAÇÃO DE DESCRIÇÃO E MEDIDA
    - "descricao_padronizada": APENAS o nome padronizado do alimento. Nunca inclua quantidade, número ou unidade aqui.
