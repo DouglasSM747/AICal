@@ -1,0 +1,5 @@
+[phases.install]
+cmds = [
+  "find . -path '*/node_modules/.vite' -type d -exec rm -rf {} + 2>/dev/null || true",
+  "npm ci"
+]
