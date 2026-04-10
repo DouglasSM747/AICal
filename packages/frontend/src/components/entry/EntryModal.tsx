@@ -54,7 +54,7 @@ export function EntryModal() {
   const [tipo, setTipo] = useState<TipoRefeicao>('almoco')
   const [horario, setHorario] = useState('')
   const [loading, setLoading] = useState(false)
-  const [textoPendente, setTextoPendente] = useState('')
+  const [, setTextoPendente] = useState('')
 
   function handleClose() {
     closeEntryModal()
