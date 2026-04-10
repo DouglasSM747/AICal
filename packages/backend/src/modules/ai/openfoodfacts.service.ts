@@ -54,8 +54,13 @@ export async function buscarNoOFF(query: string): Promise<OFFResult | null> {
 
       if (energia == null || proteina == null || carbo == null || lipideo == null) continue
 
-      const brand = Array.isArray(p.brands) ? p.brands[0] : p.brands
-      const nome  = [brand, p.product_name].filter(Boolean).join(' — ')
+      const brand      = (Array.isArray(p.brands) ? p.brands[0] : p.brands) ?? ''
+      const productName = p.product_name ?? ''
+      // Avoid repeating the brand if product_name already starts with it
+      const nome = productName.toLowerCase().startsWith(brand.toLowerCase())
+        ? productName
+        : [brand, productName].filter(Boolean).join(' ')
+
 
       return {
         nome,

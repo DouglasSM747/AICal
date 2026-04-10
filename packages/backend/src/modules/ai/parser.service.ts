@@ -134,12 +134,15 @@ export const parserService = {
     const itens_incertos_final = incertos_restantes
 
     // Enrich AI_FALLBACK items with Open Food Facts data when available
-    for (const item of itens_validos) {
-      if (item.fonte !== 'AI_FALLBACK') continue
-      const query = item.alimento_referencia ?? item.descricao_padronizada
+    // When there's a single item, use the original user text (most specific query).
+    // With multiple items, fall back to descricao_padronizada to avoid mixing items.
+    const fallbackItems = itens_validos.filter((i) => i.fonte === 'AI_FALLBACK')
+    for (const item of fallbackItems) {
+      const query = fallbackItems.length === 1 ? texto : item.descricao_padronizada
       const off = await buscarNoOFF(query)
       if (!off) continue
       const fator = item.quantidade_g / 100
+      if (off.nome) item.descricao_padronizada = off.nome.toUpperCase()
       item.energia_kcal  = +(off.energia_kcal_100g  * fator).toFixed(1)
       item.proteina_g    = +(off.proteina_g_100g    * fator).toFixed(1)
       item.carboidrato_g = +(off.carboidrato_g_100g * fator).toFixed(1)
