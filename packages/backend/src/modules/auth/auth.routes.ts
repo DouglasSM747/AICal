@@ -5,7 +5,7 @@ import { authenticate } from '../../middleware/authenticate.js'
 import { ok, fail } from '../../utils/response.js'
 
 const COOKIE_NAME = 'aical_token'
-const EXPIRES_IN_SECONDS = 8 * 60 * 60 // 8h
+const EXPIRES_IN_SECONDS = 14 * 24 * 60 * 60 // 14 days
 
 export async function authRoutes(app: FastifyInstance) {
   // POST /auth/login

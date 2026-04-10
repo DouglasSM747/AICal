@@ -1,6 +1,6 @@
 import { prisma } from '../../db/prisma.js'
 import { parserService } from '../ai/parser.service.js'
-import type { CriarRefeicaoInput } from './meals.schema.js'
+import type { CriarRefeicaoInput, CriarViaCodigoBarrasInput } from './meals.schema.js'
 import type { Refeicao, TipoRefeicao, OrigemEntrada } from '@prisma/client'
 
 function calcularPeriodo(periodo: 'semana' | 'mes' | 'personalizado', data_inicio?: string, data_fim?: string) {
@@ -233,6 +233,49 @@ export const mealsService = {
         },
       })
     }
+  },
+
+  async criarViaBarcode(usuarioId: string, input: CriarViaCodigoBarrasInput) {
+    const { item } = input
+    return prisma.$transaction(async (tx) => {
+      const refeicao = await tx.refeicao.create({
+        data: {
+          usuario_id: usuarioId,
+          tipo: input.tipo as TipoRefeicao,
+          origem_entrada: 'codigo_barras' as OrigemEntrada,
+          data_refeicao: new Date(`${input.data_refeicao}T00:00:00`),
+          horario_refeicao: input.horario_refeicao ?? null,
+          texto_confirmado: input.texto_confirmado,
+          status: 'confirmada',
+          total_energia_kcal: item.energia_kcal,
+          total_proteina_g: item.proteina_g,
+          total_carboidrato_g: item.carboidrato_g,
+          total_lipideo_g: item.lipideo_g,
+          confianca_media_ia: 0.78,
+        },
+      })
+
+      await tx.itensRefeicao.create({
+        data: {
+          refeicao_id: refeicao.id,
+          descricao_padronizada: item.descricao_padronizada,
+          quantidade_g: item.quantidade_g,
+          energia_kcal: item.energia_kcal,
+          proteina_g: item.proteina_g,
+          carboidrato_g: item.carboidrato_g,
+          lipideo_g: item.lipideo_g,
+          fibra_g: item.fibra_g,
+          confianca_ia: 0.78,
+          fonte_nutricional: 'OPEN_FOOD_FACTS',
+          ordem: 0,
+        },
+      })
+
+      return tx.refeicao.findUnique({
+        where: { id: refeicao.id },
+        include: { itens: true },
+      })
+    })
   },
 
   async atualizarHorario(id: string, usuarioId: string, horario: string) {

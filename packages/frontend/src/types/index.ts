@@ -1,7 +1,7 @@
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
 export type TipoRefeicao = 'cafe_da_manha' | 'almoco' | 'lanche' | 'janta' | 'ceia'
-export type OrigemEntrada = 'texto' | 'audio'
+export type OrigemEntrada = 'texto' | 'audio' | 'codigo_barras'
 export type StatusRefeicao =
   | 'rascunho'
   | 'processando'
@@ -75,6 +75,18 @@ export interface Refeicao {
   confianca_media_ia: number | null
   criado_em: string
   itens?: ItemRefeicao[]
+}
+
+// ─── Barcode ─────────────────────────────────────────────────────────────────
+
+export interface ProdutoBarcode {
+  nome: string
+  energia_kcal_100g: number
+  proteina_g_100g: number
+  carboidrato_g_100g: number
+  lipideo_g_100g: number
+  fibra_g_100g: number | null
+  serving_size_g?: number | null
 }
 
 // ─── AI Processing ───────────────────────────────────────────────────────────

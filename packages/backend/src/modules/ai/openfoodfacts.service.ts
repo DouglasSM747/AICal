@@ -22,6 +22,51 @@ export interface OFFResult {
   carboidrato_g_100g: number
   lipideo_g_100g: number
   fibra_g_100g: number | null
+  serving_size_g?: number | null
+}
+
+export async function buscarPorCodigoOFF(barcode: string): Promise<OFFResult | null> {
+  try {
+    const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`, {
+      headers: { 'User-Agent': USER_AGENT },
+      signal: AbortSignal.timeout(6000),
+    })
+
+    if (!res.ok) return null
+
+    const data = (await res.json()) as { status: number; product?: OFFHit & { serving_quantity?: number; serving_size?: string } }
+
+    if (data.status !== 1 || !data.product) return null
+
+    const p = data.product
+    const n = p.nutriments
+    if (!n) return null
+
+    const energia  = n['energy-kcal_100g']
+    const proteina = n['proteins_100g']
+    const carbo    = n['carbohydrates_100g']
+    const lipideo  = n['fat_100g']
+
+    if (energia == null || proteina == null || carbo == null || lipideo == null) return null
+
+    const brand      = (Array.isArray(p.brands) ? p.brands[0] : p.brands) ?? ''
+    const productName = p.product_name ?? ''
+    const nome = productName.toLowerCase().startsWith(brand.toLowerCase())
+      ? productName
+      : [brand, productName].filter(Boolean).join(' ')
+
+    return {
+      nome,
+      energia_kcal_100g:  energia,
+      proteina_g_100g:    proteina,
+      carboidrato_g_100g: carbo,
+      lipideo_g_100g:     lipideo,
+      fibra_g_100g:       n['fiber_100g'] ?? null,
+      serving_size_g:     p.serving_quantity ?? null,
+    } as OFFResult & { serving_size_g?: number | null }
+  } catch {
+    return null
+  }
 }
 
 export async function buscarNoOFF(query: string): Promise<OFFResult | null> {

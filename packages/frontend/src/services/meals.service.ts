@@ -1,5 +1,5 @@
 import api from './api'
-import type { DiaResumo, DiaHistorico, Refeicao, TipoRefeicao, OrigemEntrada } from '@/types'
+import type { DiaResumo, DiaHistorico, Refeicao, TipoRefeicao, OrigemEntrada, ProdutoBarcode } from '@/types'
 
 export interface CriarRefeicaoPayload {
   tipo: TipoRefeicao
@@ -50,6 +50,34 @@ export const mealsService = {
       texto,
     })
     return res.data.data
+  },
+
+  async criarViaBarcode(payload: {
+    tipo: string
+    data_refeicao: string
+    horario_refeicao?: string
+    texto_confirmado: string
+    item: {
+      descricao_padronizada: string
+      quantidade_g: number
+      energia_kcal: number
+      proteina_g: number
+      carboidrato_g: number
+      lipideo_g: number
+      fibra_g: number | null
+    }
+  }): Promise<Refeicao> {
+    const res = await api.post<{ ok: true; data: Refeicao }>('/refeicoes/barcode', payload)
+    return res.data.data
+  },
+
+  async buscarPorCodigoBarras(barcode: string): Promise<ProdutoBarcode | null> {
+    try {
+      const res = await api.post<{ ok: true; data: ProdutoBarcode }>('/ai/barcode', { barcode })
+      return res.data.data
+    } catch {
+      return null
+    }
   },
 
   async transcreverAudio(audioBlob: Blob): Promise<{ transcricao: string }> {

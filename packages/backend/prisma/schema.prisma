@@ -86,6 +86,7 @@ enum TipoRefeicao {
 enum OrigemEntrada {
   texto
   audio
+  codigo_barras
 }
 
 enum StatusRefeicao {

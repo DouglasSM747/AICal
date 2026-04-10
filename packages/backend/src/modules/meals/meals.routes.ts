@@ -3,6 +3,7 @@ import { authenticate } from '../../middleware/authenticate.js'
 import { mealsService } from './meals.service.js'
 import {
   criarRefeicaoSchema,
+  criarViaCodigoBarrasSchema,
   atualizarHorarioSchema,
   reprocessarSchema,
   historicoQuerySchema,
@@ -87,6 +88,26 @@ export async function mealsRoutes(app: FastifyInstance) {
 
       const refeicao = await mealsService.criar(req.user.sub, parsed.data)
       return ok(reply, refeicao, 202)
+    },
+  )
+
+  // POST /refeicoes/barcode — save barcode meal directly, skip GPT
+  app.post(
+    '/barcode',
+    {
+      preHandler: authenticate,
+      config: { rateLimit: { max: 20, timeWindow: '1 minute' } },
+    },
+    async (req, reply) => {
+      const parsed = criarViaCodigoBarrasSchema.safeParse(req.body)
+      if (!parsed.success) {
+        return fail(reply, 400, 'VALIDATION_ERROR', 'Dados inválidos', {
+          fields: parsed.error.flatten().fieldErrors,
+        })
+      }
+
+      const refeicao = await mealsService.criarViaBarcode(req.user.sub, parsed.data)
+      return ok(reply, refeicao)
     },
   )
 

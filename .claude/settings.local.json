@@ -8,7 +8,8 @@
       "Bash(ls c:/Users/Douglas/Desktop/PROJETOS/AICal/packages/backend/.env*)",
       "Bash(curl -s \"https://world.openfoodfacts.org/cgi/search.pl?search_terms=Nutrata+Whey+Grego+Havanna&search_simple=1&action=process&json=1&fields=product_name,brands,nutriments&page_size=3\")",
       "Bash(curl -s \"https://search.openfoodfacts.org/search?q=Nutrata+Whey+Grego+Havanna&cc=br&lc=pt&fields=product_name,brands,nutriments&page_size=3\" -H \"User-Agent: AICal/1.0\")",
-      "Bash(python -m json.tool)"
+      "Bash(python -m json.tool)",
+      "Bash(curl -s \"https://world.openfoodfacts.org/api/v0/product/7891025122067.json\")"
     ]
   }
 }
