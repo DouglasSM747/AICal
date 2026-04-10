@@ -41,29 +41,6 @@ function AuthGuard() {
   return null
 }
 
-function DebugPanel() {
-  const params = new URLSearchParams(window.location.search)
-  if (!params.has('debug')) return null
-
-  const token = sessionStorage.getItem('aical_token')
-  const usuario = sessionStorage.getItem('aical_usuario')
-  const isAuth = !!token
-
-  return (
-    <div style={{
-      position: 'fixed', bottom: 80, left: 8, right: 8, zIndex: 9999,
-      background: '#000000cc', color: '#00ff88', borderRadius: 8,
-      padding: '10px 12px', fontSize: 11, fontFamily: 'monospace',
-      maxHeight: 200, overflowY: 'auto',
-    }}>
-      <b>🐛 DEBUG AUTH</b><br />
-      token: {token ? `${token.slice(0, 20)}…` : 'null'}<br />
-      isAuth: {String(isAuth)}<br />
-      usuario: {usuario ? JSON.parse(usuario).username : 'null'}<br />
-      ua: {navigator.userAgent.slice(0, 60)}
-    </div>
-  )
-}
 
 function App() {
   return (
@@ -88,7 +65,6 @@ function App() {
         </Routes>
         <EntryModal />
         <Toaster position="top-center" richColors />
-        <DebugPanel />
       </BrowserRouter>
     </QueryClientProvider>
   )
