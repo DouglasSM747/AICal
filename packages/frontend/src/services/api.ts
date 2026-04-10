@@ -3,7 +3,17 @@ import axios from 'axios'
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: true, // sends httpOnly cookie automatically
+  withCredentials: true, // sends httpOnly cookie when available (desktop)
+})
+
+// Attach Bearer token from sessionStorage for clients where cross-origin
+// cookies are blocked (iOS Safari ITP)
+api.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem('aical_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 // On 401 → dispatch event so React Router handles navigation (avoids full reload)

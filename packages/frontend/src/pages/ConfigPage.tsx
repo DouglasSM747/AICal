@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { User, Brain, TrendingUp, Zap, DollarSign, LogOut } from 'lucide-react'
+import { User, Brain, TrendingUp, Zap, DollarSign, LogOut, Tag } from 'lucide-react'
+import { APP_VERSION, APP_BUILD_DATE, APP_COMMIT } from '@/utils/version'
 import { useAuthStore } from '@/store/auth.store'
 import api from '@/services/api'
 import { authService } from '@/services/auth.service'
@@ -81,6 +82,29 @@ export default function ConfigPage() {
           <LogOut size={16} />
           Sair da conta
         </button>
+      </section>
+
+      {/* Version card */}
+      <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Tag size={16} className="text-brand-600" />
+          <h2 className="text-sm font-semibold text-gray-700">Versão do sistema</h2>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-sm font-semibold">
+            v{APP_VERSION}
+          </span>
+          {APP_COMMIT && (
+            <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-500 text-xs font-mono">
+              #{APP_COMMIT}
+            </span>
+          )}
+        </div>
+        <p className="mt-2 text-xs text-gray-400">
+          Build {new Date(APP_BUILD_DATE).toLocaleDateString('pt-BR', {
+            day: '2-digit', month: 'short', year: 'numeric',
+          })}
+        </p>
       </section>
 
       {/* AI Usage section */}

@@ -26,6 +26,7 @@ export interface Usuario {
 }
 
 export interface LoginResponse {
+  token: string
   expira_em: string
   usuario: Usuario
 }

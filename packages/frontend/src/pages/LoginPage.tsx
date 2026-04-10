@@ -27,7 +27,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const response = await authService.login(username, senha)
-      setAuth(response.usuario)
+      setAuth(response.usuario, response.token)
       navigate('/')
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status

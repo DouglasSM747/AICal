@@ -47,7 +47,9 @@ export async function authRoutes(app: FastifyInstance) {
 
       const expira_em = new Date(Date.now() + EXPIRES_IN_SECONDS * 1000).toISOString()
 
-      return ok(reply, { expira_em, usuario })
+      // Return token in body so clients that can't use cross-origin cookies (e.g. iOS Safari ITP)
+      // can fall back to Authorization header
+      return ok(reply, { token, expira_em, usuario })
     },
   )
 
