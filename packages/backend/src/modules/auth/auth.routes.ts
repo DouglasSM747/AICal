@@ -3,7 +3,6 @@ import { loginSchema } from './auth.schema.js'
 import { authService } from './auth.service.js'
 import { authenticate } from '../../middleware/authenticate.js'
 import { ok, fail } from '../../utils/response.js'
-import { env } from '../../config/env.js'
 
 const COOKIE_NAME = 'aical_token'
 const EXPIRES_IN_SECONDS = 8 * 60 * 60 // 8h
@@ -40,8 +39,8 @@ export async function authRoutes(app: FastifyInstance) {
 
       reply.setCookie(COOKIE_NAME, token, {
         httpOnly: true,
-        secure: env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: true,
+        sameSite: 'none',
         path: '/',
         maxAge: EXPIRES_IN_SECONDS,
       })
