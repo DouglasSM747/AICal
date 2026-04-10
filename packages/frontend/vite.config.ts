@@ -52,7 +52,7 @@ export default defineConfig({
     },
   },
   preview: {
-    allowedHosts: ['all'],
+    allowedHosts: true,
   },
   server: {
     proxy: {
