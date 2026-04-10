@@ -2,7 +2,6 @@ import OpenAI from 'openai'
 import { env } from '../../config/env.js'
 import { SYSTEM_PROMPT_PARSER, buildUserPrompt } from './prompts.js'
 import { gptRefeicaoResponseSchema, RESPOSTA_VAZIA } from './ai.schema.js'
-import type { ItemParsedRaw } from './ai.schema.js'
 import { buscarNoOFF } from './openfoodfacts.service.js'
 import { prisma } from '../../db/prisma.js'
 
@@ -167,7 +166,7 @@ export const parserService = {
 
 // ─── Cache AI fallback ────────────────────────────────────────────────────────
 
-async function cachearAlimentoIA(item: ItemParsedRaw) {
+async function cachearAlimentoIA(item: ItemParsed) {
   try {
     const fonte = await prisma.fonteNutricional.findUnique({ where: { codigo: 'AI_GPT' } })
     if (!fonte) return

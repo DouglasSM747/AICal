@@ -1,4 +1,4 @@
-const OFF_SEARCH = 'https://world.openfoodfacts.org/cgi/search.pl'
+const OFF_SEARCH = 'https://search.openfoodfacts.org/search'
 const USER_AGENT = 'AICal/1.0 (diary alimentar; github.com/DouglasSM747/AICal)'
 
 interface OFFNutriments {
@@ -9,9 +9,9 @@ interface OFFNutriments {
   'fiber_100g'?: number
 }
 
-interface OFFProduct {
+interface OFFHit {
   product_name?: string
-  brands?: string
+  brands?: string | string[]
   nutriments?: OFFNutriments
 }
 
@@ -27,12 +27,9 @@ export interface OFFResult {
 export async function buscarNoOFF(query: string): Promise<OFFResult | null> {
   try {
     const params = new URLSearchParams({
-      search_terms: query,
-      search_simple: '1',
-      action: 'process',
-      json: '1',
-      lc: 'pt',
+      q: query,
       cc: 'br',
+      lc: 'pt',
       fields: 'product_name,brands,nutriments',
       page_size: '5',
     })
@@ -44,9 +41,9 @@ export async function buscarNoOFF(query: string): Promise<OFFResult | null> {
 
     if (!res.ok) return null
 
-    const data = (await res.json()) as { products?: OFFProduct[] }
+    const data = (await res.json()) as { hits?: OFFHit[] }
 
-    for (const p of data.products ?? []) {
+    for (const p of data.hits ?? []) {
       const n = p.nutriments
       if (!n) continue
 
@@ -57,7 +54,9 @@ export async function buscarNoOFF(query: string): Promise<OFFResult | null> {
 
       if (energia == null || proteina == null || carbo == null || lipideo == null) continue
 
-      const nome = [p.brands, p.product_name].filter(Boolean).join(' — ')
+      const brand = Array.isArray(p.brands) ? p.brands[0] : p.brands
+      const nome  = [brand, p.product_name].filter(Boolean).join(' — ')
+
       return {
         nome,
         energia_kcal_100g:  energia,
