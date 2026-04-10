@@ -2,7 +2,7 @@ import OpenAI from 'openai'
 import { env } from '../../config/env.js'
 import { SYSTEM_PROMPT_PARSER, buildUserPrompt } from './prompts.js'
 import { gptRefeicaoResponseSchema, RESPOSTA_VAZIA } from './ai.schema.js'
-import type { ItemParsedRaw, ItemIncertoRaw } from './ai.schema.js'
+import type { ItemParsedRaw } from './ai.schema.js'
 import { prisma } from '../../db/prisma.js'
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY })
@@ -22,7 +22,7 @@ export interface ItemParsed {
   lipideo_g:             number
   fibra_g:               number | null
   confianca:             number
-  fonte:                 string
+  fonte:                 'TACO' | 'AI_FALLBACK'
   alimento_referencia:   string | null
   nota:                  string | null
 }

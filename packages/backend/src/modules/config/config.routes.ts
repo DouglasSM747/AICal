@@ -23,7 +23,7 @@ export async function configRoutes(app: FastifyInstance) {
     async (req, reply) => {
       const { periodo = 'mes' } = req.query as { periodo?: string }
 
-      const usuarioId = (req.user as { id: string }).id
+      const usuarioId = req.user.sub
 
       let dataInicio: Date | undefined
       const agora = new Date()
