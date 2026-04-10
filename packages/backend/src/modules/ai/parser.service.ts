@@ -3,6 +3,7 @@ import { env } from '../../config/env.js'
 import { SYSTEM_PROMPT_PARSER, buildUserPrompt } from './prompts.js'
 import { gptRefeicaoResponseSchema, RESPOSTA_VAZIA } from './ai.schema.js'
 import type { ItemParsedRaw } from './ai.schema.js'
+import { buscarNoOFF } from './openfoodfacts.service.js'
 import { prisma } from '../../db/prisma.js'
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY })
@@ -22,7 +23,7 @@ export interface ItemParsed {
   lipideo_g:             number
   fibra_g:               number | null
   confianca:             number
-  fonte:                 'TACO' | 'AI_FALLBACK'
+  fonte:                 'TACO' | 'AI_FALLBACK' | 'OPEN_FOOD_FACTS'
   alimento_referencia:   string | null
   nota:                  string | null
 }
@@ -106,6 +107,22 @@ export const parserService = {
 
     const itens_incertos_final = [...itens_incertos, ...itens_movidos]
 
+    // Enrich AI_FALLBACK items with Open Food Facts data when available
+    for (const item of itens_validos) {
+      if (item.fonte !== 'AI_FALLBACK') continue
+      const query = item.alimento_referencia ?? item.descricao_padronizada
+      const off = await buscarNoOFF(query)
+      if (!off) continue
+      const fator = item.quantidade_g / 100
+      item.energia_kcal  = +(off.energia_kcal_100g  * fator).toFixed(1)
+      item.proteina_g    = +(off.proteina_g_100g    * fator).toFixed(1)
+      item.carboidrato_g = +(off.carboidrato_g_100g * fator).toFixed(1)
+      item.lipideo_g     = +(off.lipideo_g_100g     * fator).toFixed(1)
+      item.fibra_g       = off.fibra_g_100g != null ? +(off.fibra_g_100g * fator).toFixed(1) : null
+      item.fonte         = 'OPEN_FOOD_FACTS'
+      item.confianca     = Math.max(item.confianca, 0.75)
+    }
+
     // Recalculate totals from validated items only
     const totais = itens_validos.reduce(
       (acc, i) => ({
@@ -117,8 +134,8 @@ export const parserService = {
       { energia_kcal: 0, proteina_g: 0, carboidrato_g: 0, lipideo_g: 0 },
     )
 
-    // Cache AI_FALLBACK items for future reuse
-    for (const item of itens_validos.filter((i) => i.fonte === 'AI_FALLBACK')) {
+    // Cache AI_FALLBACK and OPEN_FOOD_FACTS items for future reuse
+    for (const item of itens_validos.filter((i) => i.fonte === 'AI_FALLBACK' || i.fonte === 'OPEN_FOOD_FACTS')) {
       await cachearAlimentoIA(item)
     }
 
